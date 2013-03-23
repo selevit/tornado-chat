@@ -1,0 +1,25 @@
+input[type="text"] {
+    border: 1px solid #CCC;
+    outline: none;
+    padding: 5px 8px;
+}
+input[type="text"].error {
+    border: 1px solid #cc0000;
+}
+.input-large {
+    width: 450px;
+}
+.chat-messages {
+    height: 400px;
+    background: #eee;
+    margin: 20px 0;
+    overflow: auto;
+}
+.chat-messages .message {
+    margin: 10px 0;
+}
+.chat-messages .message address {
+    display: inline-block;
+    font-weight: bold;
+    margin-right: 10px
+}
