@@ -6,10 +6,11 @@
     application.websocket = {
         socket: null,
         init: function() {
-            var socket = new WebSocket('ws://localhost:8888/websocket'), message;
+            var socket = new WebSocket(
+                'ws://' + document.location.host + '/websocket'
+            ), message;
             socket.onmessage = function (event) {
                 message = JSON.parse(event.data);
-                console.log(message);
                 application.chat.appendMessage(message.user, message.text);
             };
             this.socket = socket;
@@ -26,9 +27,17 @@
         },
         appendMessage: function (user, text) {
             var addr = document.createElement('address');
-            addr.innerText = user + ':';
+            if (addr.innerText !== undefined) {
+                addr.innerText = user;
+            } else {
+                addr.textContent = user;
+            }
             var span = document.createElement('span');
-            span.innerText = text;
+            if (span.innerText !== undefined) {
+                span.innerText = text;
+            } else {
+                span.textContent = text;
+            }
             var item = document.createElement('div');
             item.className = 'message';
             item.appendChild(addr);
@@ -75,7 +84,6 @@
                 if (application.websocket.socket !== null) {
                     socket = application.websocket.socket; 
                     socket.send(jsonMessage);
-                    application.chat.appendMessage(user, text);
                 }
                 form.text.value = '';
                 return false;

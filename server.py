@@ -7,7 +7,9 @@ import json
 import tornado.web
 import tornado.ioloop
 import tornado.websocket
+
 from tornado import template
+from tornado.escape import linkify
 
 import pymongo
 
@@ -24,12 +26,10 @@ class WebSocket(tornado.websocket.WebSocketHandler):
         self.application.webSocketsPool.append(self)
 
     def on_message(self, message):
-        socket_id = message
         db = self.application.db
         db.chat.save(json.loads(message))
         for key, value in enumerate(self.application.webSocketsPool):
-            if value != self:
-                value.ws_connection.write_message(message)
+            value.ws_connection.write_message(message)
 
     def on_close(self, message=None):
         for key, value in enumerate(self.application.webSocketsPool):

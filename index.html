@@ -11,7 +11,7 @@
         <div id="chat-messages" class="chat-messages">
             {% for message in messages %}
             <div class="message">
-                <address>{{ message['user'] }}:</address><span>{{ message['text'] }}</span>
+                <address>{{ message['user'] }}</address><span>{{ message['text'] }}</span>
             </div>
             {% end %}
         </div>

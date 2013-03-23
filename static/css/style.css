@@ -18,8 +18,11 @@ input[type="text"].error {
 .chat-messages .message {
     margin: 10px 0;
 }
-.chat-messages .message address {
+.chat-messages address {
     display: inline-block;
     font-weight: bold;
     margin-right: 10px
+}
+.chat-messages address:after {
+    content: ':';
 }
