@@ -1,17 +1,15 @@
-input[type="text"] {
-    border: 1px solid #CCC;
-    outline: none;
-    padding: 5px 8px;
+body {
+    padding-top: 20px;
 }
-input[type="text"].error {
-    border: 1px solid #cc0000;
+input[type="text"] {
+    outline: none;
 }
 .input-large {
     width: 450px;
 }
 .chat-messages {
     height: 400px;
-    background: #eee;
+    width: 70%;
     margin: 20px 0;
     overflow: auto;
 }

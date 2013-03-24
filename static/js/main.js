@@ -65,13 +65,16 @@ $(function () {
     var AppView = Backbone.View.extend({
 
         el: $('#backbone-chat'),
+        lastMessage: $('.message').last(),
 
         events: {
             'submit #chat-form': 'createOnSubmit'
         },
 
         initialize: function () {
-            this.$('.message').last()[0].scrollIntoView();
+            if (this.lastMessage.length) {
+                this.lastMessage[0].scrollIntoView();
+            }
             this.textInput = this.$('#id_text');
             this.userInput = this.$('#id_user');
 
