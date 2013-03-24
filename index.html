@@ -4,21 +4,33 @@
         <meta charset="utf-8">
         <title>Tornado Chat</title>
         <link rel="stylesheet" href="/static/css/style.css">
+        <script src="/static/js/jquery-1.9.1.min.js"></script>
+        <script src="/static/js/underscore.js"></script>
+        <script src="/static/js/backbone.js"></script>
+        <script src="/static/js/backbone.localStorage.js"></script>
         <script src="/static/js/main.js"></script>
+        <!--<script src="/static/js/main.js"></script>-->
     </head>
     <body>
-        <h1>Conference</h1>
-        <div id="chat-messages" class="chat-messages">
-            {% for message in messages %}
-            <div class="message">
-                <address>{{ message['user'] }}</address><span>{{ message['text'] }}</span>
+        <div id="backbone-chat">
+            <h1>Conference</h1>
+            <div id="chat-messages" class="chat-messages">
+                {% for message in messages %}
+                <div class="message">
+                    <address>{{ message['user'] }}</address><span>{{ message['text'] }}</span>
+                </div>
+                {% end %}
             </div>
-            {% end %}
+            <form name="chat-form" id="chat-form" action="." method="get">
+                <input type="text" name="user" id="id_user" placeholder="Your name" autofocus>
+                <input class="input-large" type="text" name="text" id="id_text" placeholder="Enter your message here" autocomplete="off">
+                <button type="submit">Send</button>
+            </form>
         </div>
-        <form name="chat-form" id="chat-form" action="." method="get">
-            <input type="text" name="user" id="id_user" placeholder="Your name" autofocus>
-            <input class="input-large" type="text" name="text" id="id_text" placeholder="Enter your message here" autocomplete="off">
-            <button type="submit">Send</button>
-        </form>
+        <!-- Templates -->
+        <script type="text/template" id="message-template">
+            <address><%- user %></address><span><%- text %></span>
+        </script>
+        <!-- /Templates -->
     </body>
 </html>

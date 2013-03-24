@@ -1,99 +1,132 @@
-;!(function () {
-    'use strict';
+$(function () {
 
-    var application = {};
-
-    application.websocket = {
-        socket: null,
-        init: function() {
-            var socket = new WebSocket(
-                'ws://' + document.location.host + '/websocket'
-            ), message;
-            socket.onmessage = function (event) {
-                message = JSON.parse(event.data);
-                application.chat.appendMessage(message.user, message.text);
+    var Socket = {
+        ws: null,
+        init: function () {
+            ws = new WebSocket('ws://' + document.location.host + '/websocket');
+            ws.onopen = function () {
+                console.log('Socket opened');
             };
-            this.socket = socket;
+
+            ws.onclose = function () {
+                console.log('Socket close');
+            };
+
+            ws.onmessage = function (e) {
+                var message = new Message(JSON.parse(e.data));
+                App.addOne(message);
+            };
+            this.ws = ws;
         }
     };
 
-    application.chat = {
-        container: null,
-        init: function () {
-            this.container = document.getElementById('chat-messages');
-            if (this.container.lastElementChild !== null) {
-                this.container.lastElementChild.scrollIntoView();
-            }
+    Socket.init();
+    var socket = Socket.ws;
+
+    var Message = Backbone.Model.extend({
+        defaults: function () {
+            return {
+                user: null,
+                text: null,
+            };
         },
-        appendMessage: function (user, text) {
-            var addr = document.createElement('address');
-            if (addr.innerText !== undefined) {
-                addr.innerText = user;
-            } else {
-                addr.textContent = user;
-            }
-            var span = document.createElement('span');
-            if (span.innerText !== undefined) {
-                span.innerText = text;
-            } else {
-                span.textContent = text;
-            }
-            var item = document.createElement('div');
-            item.className = 'message';
-            item.appendChild(addr);
-            item.appendChild(span);
-            if (this.container === null) {
-                console.error('Container for chat\'s messages is null');
-                return;
-            }
-            this.container.appendChild(item);
-            item.scrollIntoView();
+        save: function (options) {
+            socket.send(JSON.stringify(this));
+        }
+    });
+
+    var MessageList = Backbone.Collection.extend({
+
+        model: Message,
+
+    });
+
+    var Messages = new MessageList;
+
+    var MessageView = Backbone.View.extend({
+
+        tagName: 'div',
+
+        className: 'message',
+
+        template: _.template($('#message-template').html()),
+
+        /*
+        initialize: function () {
+        },
+        */
+
+        render: function () {
+            this.$el.html(this.template(this.model.toJSON()));
             return this;
         }
-    };
+    });
 
-    application.handlers = {
-        init: function () {
-            var form = document.forms['chat-form'], message, jsonMessage,
-                socket;
-            form.onsubmit = function () {
-                var text = form.text.value.trim(),
-                    user = form.user.value.trim();
-                form.user.classList.remove('error');
-                form.text.classList.remove('error');
-                if (!user) {
-                    form.user.focus();
-                    if (!form.user.classList.contains('error')) {
-                        form.user.classList.add('error');
-                    }
-                    return false;
-                }
-                if (!text) {
-                    form.text.focus();
-                    if (!form.text.classList.contains('error')) {
-                        form.text.classList.add('error');
-                    }
-                    return false;
-                }
-                message = {
-                    user: user,
-                    text: text
-                };
-                jsonMessage = JSON.stringify(message);
+    var AppView = Backbone.View.extend({
 
-                if (application.websocket.socket !== null) {
-                    socket = application.websocket.socket; 
-                    socket.send(jsonMessage);
-                }
-                form.text.value = '';
+        el: $('#backbone-chat'),
+
+        events: {
+            'submit #chat-form': 'createOnSubmit'
+        },
+
+        initialize: function () {
+            this.$('.message').last()[0].scrollIntoView();
+            this.textInput = this.$('#id_text');
+            this.userInput = this.$('#id_user');
+
+            this.listenTo(Messages, 'add', this.addOne);
+            this.listenTo(Messages, 'reset', this.addAll);
+            this.listenTo(Messages, 'all', this.render);
+
+            Messages.fetch();
+        },
+
+        addOne: function (message) {
+            var view = new MessageView({
+                model: message
+            });
+            this.$('#chat-messages').append(view.render().el);
+            this.$('.message').last()[0].scrollIntoView();
+        },
+
+        addAll: function () {
+            Messages.each(this.addOne, this);
+        },
+
+        createOnSubmit: function () {
+            this.userInput.removeClass('error');
+            this.textInput.removeClass('error');
+
+            if (!this.userInput.val().trim()) {
+                this.userInput.addClass('error');
+                this.userInput.focus();
                 return false;
-            };
-        }
+            }
+            if (!this.textInput.val().trim()) {
+                this.textInput.addClass('error');
+                this.textInput.focus();
+                return false;
+            }
+
+            Messages.create({
+                user: this.userInput.val(),
+                text: this.textInput.val()
+            });
+
+            this.textInput.val('');
+            return false;
+        },
+
+    });
+
+
+    Backbone.sync = function(method, model) {
+        //alert(method + ': ' + JSON.stringify(model));
+        //model.id = 1;
     };
 
-    window.onload = function () {
-        application.websocket.init();
-        application.chat.init();
-        application.handlers.init();
-    };
-}());
+
+
+    var App = new AppView;
+});
