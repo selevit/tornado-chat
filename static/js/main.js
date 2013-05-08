@@ -9,7 +9,7 @@ $(function () {
             };
 
             ws.onclose = function () {
-                console.log('Socket close');
+                console.log('Socket closed');
             };
 
             ws.onmessage = function (e) {
@@ -20,25 +20,33 @@ $(function () {
         }
     };
 
-    Socket.init();
-    var socket = Socket.ws;
+    //Socket.init();
+    //var socket = Socket.ws;
 
     var Message = Backbone.Model.extend({
         defaults: function () {
             return {
                 user: null,
-                text: null,
+                text: null
             };
         },
-        save: function (options) {
+        /*save: function (options) {
             socket.send(JSON.stringify(this));
-        }
+        }*/
     });
 
     var MessageList = Backbone.Collection.extend({
 
         model: Message,
 
+        localStorage: new Backbone.LocalStorage('todos-backbone'),
+
+        nextOrder: function() {
+            if (!this.length) return 1;
+            return this.last().get('order') + 1;
+        },
+
+        comparator: 'order'
     });
 
     var Messages = new MessageList;
@@ -51,10 +59,10 @@ $(function () {
 
         template: _.template($('#message-template').html()),
 
-        /*
         initialize: function () {
+            this.listenTo(this.model, 'change', this.render);
+            this.listenTo(this.model, 'destroy', this.remove);
         },
-        */
 
         render: function () {
             this.$el.html(this.template(this.model.toJSON()));
@@ -106,6 +114,7 @@ $(function () {
                 this.userInput.focus();
                 return false;
             }
+
             if (!this.textInput.val().trim()) {
                 this.textInput.addClass('error');
                 this.textInput.focus();
@@ -124,11 +133,10 @@ $(function () {
     });
 
 
-    Backbone.sync = function(method, model) {
-        //alert(method + ': ' + JSON.stringify(model));
-        //model.id = 1;
-    };
-
+    /*Backbone.sync = function(method, model) {
+        alert(method + ': ' + JSON.stringify(model));
+        model.id = 1;
+    };*/
 
 
     var App = new AppView;
