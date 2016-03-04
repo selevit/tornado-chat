@@ -45,7 +45,7 @@ class Application(tornado.web.Application):
         settings = {
             'static_url_prefix': '/static/',
         }
-        connection = pymongo.Connection('127.0.0.1', 27017)
+        connection = pymongo.MongoClient('127.0.0.1', 27017)
         self.db = connection.chat
         handlers = (
             (r'/', MainHandler),
@@ -62,4 +62,3 @@ application = Application()
 if __name__ == '__main__':
     application.listen(8888)
     tornado.ioloop.IOLoop.instance().start()
-

@@ -1,2 +1,2 @@
-pymongo
-tornado
+pymongo==3.2.1
+tornado==4.3
