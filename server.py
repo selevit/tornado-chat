@@ -1,34 +1,39 @@
-#!/usr/bin/env python
-#!-*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 import os
 import json
 
+from motor.motor_tornado import MotorClient
 import tornado.web
 import tornado.ioloop
 import tornado.websocket
 
-from tornado import template
-from tornado.escape import linkify
 
-import pymongo
+MONGO_HOST = os.environ.get("MONGO_HOST", "127.0.0.1")
+MONGO_PORT = int(os.environ.get("MONGO_PORT", 27017))
+LISTEN_PORT = int(os.environ.get("LISTEN_PORT", 8888))
 
 
 class MainHandler(tornado.web.RequestHandler):
-    def get(self):
+
+    async def get(self):
         db = self.application.db
-        messages = db.chat.find()
+        cursor = db.chat.find()
+        messages = []
+        while (await cursor.fetch_next):
+            message = cursor.next_object()
+            messages.append(message)
         self.render('index.html', messages=messages)
 
 
 class WebSocket(tornado.websocket.WebSocketHandler):
+
     def open(self):
         self.application.webSocketsPool.append(self)
 
     def on_message(self, message):
-        db = self.application.db
-        message_dict = json.loads(message);
-        db.chat.insert(message_dict)
+        message_dict = json.loads(message)
+        self.application.db.chat.insert(message_dict)
         for key, value in enumerate(self.application.webSocketsPool):
             if value != self:
                 value.ws_connection.write_message(message)
@@ -38,27 +43,24 @@ class WebSocket(tornado.websocket.WebSocketHandler):
             if value == self:
                 del self.application.webSocketsPool[key]
 
+
 class Application(tornado.web.Application):
     def __init__(self):
         self.webSocketsPool = []
+        self.db = MotorClient(MONGO_HOST, MONGO_PORT).chat
 
-        settings = {
-            'static_url_prefix': '/static/',
-        }
-        connection = pymongo.MongoClient('127.0.0.1', 27017)
-        self.db = connection.chat
         handlers = (
             (r'/', MainHandler),
             (r'/websocket/?', WebSocket),
             (r'/static/(.*)', tornado.web.StaticFileHandler,
              {'path': 'static/'}),
         )
+        super().__init__(handlers)
 
-        tornado.web.Application.__init__(self, handlers)
 
 application = Application()
 
 
 if __name__ == '__main__':
-    application.listen(8888)
+    application.listen(LISTEN_PORT)
     tornado.ioloop.IOLoop.instance().start()

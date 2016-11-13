@@ -1,0 +1,18 @@
+version: '2'
+
+services:
+  tornado-chat-storage:
+    image: mongo:3.2 
+    container_name: tornado-chat-storage
+    hostname: tornado-chat-storage
+
+  tornado-chat:
+    build: . 
+    container_name: tornado-chat
+    hostname: tornado-chat
+    ports:
+      - "8888:8888"
+    environment:
+      - MONGO_HOST=tornado-chat-storage
+    depends_on:
+      - tornado-chat-storage

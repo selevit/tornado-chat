@@ -9,7 +9,7 @@ $(function () {
             };
 
             ws.onclose = function () {
-                console.log('Socket close');
+                console.log('Socket closed');
             };
 
             ws.onmessage = function (e) {
@@ -50,11 +50,6 @@ $(function () {
         className: 'message',
 
         template: _.template($('#message-template').html()),
-
-        /*
-        initialize: function () {
-        },
-        */
 
         render: function () {
             this.$el.html(this.template(this.model.toJSON()));
@@ -123,13 +118,10 @@ $(function () {
 
     });
 
-
     Backbone.sync = function(method, model) {
         //alert(method + ': ' + JSON.stringify(model));
         //model.id = 1;
     };
-
-
 
     var App = new AppView;
 });
