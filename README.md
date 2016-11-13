@@ -1,4 +1,4 @@
-# Simple asyncronous chat writted on Tornado
+# Simple asyncronous chat written on Tornado
 
 Example of the simple chat on Tornado and Mongo DB.
 
