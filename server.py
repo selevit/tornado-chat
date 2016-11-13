@@ -12,17 +12,17 @@ import tornado.websocket
 MONGO_HOST = os.environ.get("MONGO_HOST", "127.0.0.1")
 MONGO_PORT = int(os.environ.get("MONGO_PORT", 27017))
 LISTEN_PORT = int(os.environ.get("LISTEN_PORT", 8888))
+MESSAGES_SHOW_LIMIT = 10
 
 
 class MainHandler(tornado.web.RequestHandler):
 
     async def get(self):
-        db = self.application.db
-        cursor = db.chat.find()
-        messages = []
-        while (await cursor.fetch_next):
-            message = cursor.next_object()
-            messages.append(message)
+        cursor = self.application.db.messages.find().sort('_id', -1).limit(
+            MESSAGES_SHOW_LIMIT
+        )
+        messages = await cursor.to_list(None)
+        messages.reverse()
         self.render('index.html', messages=messages)
 
 
@@ -33,7 +33,7 @@ class WebSocket(tornado.websocket.WebSocketHandler):
 
     def on_message(self, message):
         message_dict = json.loads(message)
-        self.application.db.chat.insert(message_dict)
+        self.application.db.messages.insert(message_dict)
         for key, value in enumerate(self.application.webSocketsPool):
             if value != self:
                 value.ws_connection.write_message(message)
